@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from decimal import Decimal
-
 from app.database import get_db
-from app.schemas import InvoiceResponse
+from app.schemas import InvoiceResponse, InvoiceStatusUpdate
 from app.services.invoice_service import (
     create_invoice,
     get_invoice,
     list_invoices,
     cancel_invoice,
+    update_invoice_status
 )
 
 router = APIRouter(prefix="/invoices", tags=["Invoices"])
@@ -38,3 +38,19 @@ def list_invoice_api(status: str | None = None, order_id: int | None = None, db:
 @router.post("/{invoice_id}/cancel", response_model=InvoiceResponse)
 def cancel_invoice_api(invoice_id: int, db: Session = Depends(get_db)):
     return cancel_invoice(db, invoice_id)
+
+
+@router.post("/{invoice_id}/status")
+def update_invoice_status_api(
+    invoice_id: int,
+    payload: InvoiceStatusUpdate,
+    db: Session = Depends(get_db),
+):
+    try:
+        return update_invoice_status(
+            db,
+            invoice_id,
+            payload.status
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))

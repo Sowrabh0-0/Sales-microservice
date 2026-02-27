@@ -114,3 +114,18 @@ def cancel_invoice(db: Session, invoice_id: int):
     db.refresh(invoice)
 
     return invoice
+
+
+# --- Service for updating invoice status, called by payment service after payment creation ---
+
+def update_invoice_status(db: Session, invoice_id: int, status: str):
+    invoice = db.get(Invoice, invoice_id)
+
+    if not invoice:
+        raise ValueError("Invoice not found")
+
+    invoice.status = status
+    db.commit()
+    db.refresh(invoice)
+
+    return invoice

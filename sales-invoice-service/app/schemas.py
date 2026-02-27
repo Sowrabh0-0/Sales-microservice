@@ -1,3 +1,4 @@
+from dataclasses import Field
 from pydantic import BaseModel, ConfigDict
 from datetime import date, datetime
 from typing import Optional
@@ -15,3 +16,10 @@ class InvoiceResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class InvoiceStatusUpdate(BaseModel):
+    status: str = Field(
+        ...,
+        pattern="^(UNPAID|PARTIALLY_PAID|PAID|OVERDUE|CANCELLED|REFUNDED)$"
+    )

@@ -8,6 +8,7 @@ from app.services.customer_service import (
     get_customer,
     list_customers_service,
     update_customer,
+    customer_exists
 )
 
 router = APIRouter(prefix="/customers", tags=["Customers"])
@@ -24,6 +25,10 @@ def list_customers(page: int = Query(1, ge=1), limit: int = Query(15, ge=1, le=1
     offset = (page - 1) * limit
     return list_customers_service(db, offset=offset, limit=limit)
 
+@router.get("/{customer_id}/exists")
+def customer_exists_api(customer_id: int, db: Session = Depends(get_db)):
+    return {"exists": customer_exists(db, customer_id)}
+    
 @router.get("/{customer_id}", response_model=CustomerResponse)
 def get_customer_api(customer_id: int, db: Session = Depends(get_db)):
     try:

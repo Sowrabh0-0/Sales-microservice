@@ -41,3 +41,7 @@ def update_customer(db: Session, customer_id: int, name: str, email: str):
     except IntegrityError:
         db.rollback()
         raise ValueError("Email already exists")
+    
+
+def customer_exists(db: Session, customer_id: int) -> bool:
+    return db.get(Customer, customer_id) is not None

@@ -1,7 +1,10 @@
 from fastapi import FastAPI
+from app.routers import payments
 
-app = FastAPI(title="sales-payment-service")
+app = FastAPI(title="Payment Service")
 
 @app.get("/health")
 def health():
-return {"status": "ok"}
+    return {"status": "ok"}
+
+app.include_router(payments.router)

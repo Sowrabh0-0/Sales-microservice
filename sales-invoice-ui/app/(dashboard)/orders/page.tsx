@@ -65,22 +65,22 @@ type Customer = {
 
 type OrderItem = {
     product_name: string
-    quantity: number 
+    quantity: number
     unit_price: number
-}
-
-type OrderInvoice = {
-    id: number
-    status: string
 }
 
 type Order = {
     id: number
-    status: string
-    total: number
     customer_id: number
+    status: string
+    created_at: string
+    total: number
     items: OrderItem[]
-    invoice?: OrderInvoice | null
+}
+
+type Invoice = {
+    id: number
+    order_id: number
 }
 
 /* ================= PAGE ================= */
@@ -100,6 +100,7 @@ export default function OrdersPage() {
     const [viewOrder, setViewOrder] = useState<Order | null>(null)
     const [editingOrder, setEditingOrder] = useState<Order | null>(null)
     const [cancelOrderTarget, setCancelOrderTarget] = useState<Order | null>(null)
+    const [invoiceMap, setInvoiceMap] = useState<Record<number, boolean>>({})
 
     /* form */
     const [customerId, setCustomerId] = useState("")
@@ -133,13 +134,21 @@ export default function OrdersPage() {
                 params.append("customer_id", customerFilter)
             }
 
-            const [ordersData, customersData] = await Promise.all([
+            const [ordersData, customersData, invoicesData] = await Promise.all([
                 apiFetch<Order[]>(`/orders?${params.toString()}`),
                 apiFetch<Customer[]>("/customers"),
+                apiFetch<Invoice[]>(`/invoices`)
             ])
 
             setOrders(ordersData)
             setCustomers(customersData)
+            const map: Record<number, boolean> = {}
+
+            invoicesData.forEach(inv => {
+                map[inv.order_id] = true
+            })
+
+            setInvoiceMap(map)
         } catch (err: any) {
             toast.error(err.message)
         } finally {
@@ -249,7 +258,7 @@ export default function OrdersPage() {
                 toast.success("Order updated")
             } else {
                 // CREATE ORDER
-                const created = await apiFetch<Order>("/orders", {
+                const created = await apiFetch<Order>("/orders/", {
                     method: "POST",
                     body: JSON.stringify({
                         customer_id: Number(customerId),
@@ -342,7 +351,7 @@ export default function OrdersPage() {
                                 <TableRow key={order.id}>
                                     <TableCell>{order.id}</TableCell>
                                     <TableCell>  {customers.find(c => c.id === order.customer_id)?.name ?? "Unknown"}</TableCell>
-                                    <TableCell>{order.total.toFixed(2)}</TableCell>
+                                    <TableCell>{(order.total ?? 0).toFixed(2)}</TableCell>
                                     <TableCell><span
                                         className={`rounded-full px-2 py-1 text-xs font-medium
         ${order.status === "CREATED"
@@ -390,7 +399,7 @@ export default function OrdersPage() {
 
                                             </>
                                         )}
-                                        {order.status === "CONFIRMED" && !order.invoice && (
+                                        {order.status === "CONFIRMED" && !invoiceMap[order.id] && (
                                             <Button
                                                 size="sm"
                                                 variant="secondary"
@@ -557,7 +566,7 @@ export default function OrdersPage() {
                                     <TableCell>{i.product_name}</TableCell>
                                     <TableCell>{i.quantity}</TableCell>
                                     <TableCell>{i.unit_price}</TableCell>
-                                    <TableCell>{(i.quantity * i.unit_price).toFixed(2)}</TableCell>
+                                    <TableCell>{((i.quantity ?? 0) * (i.unit_price ?? 0)).toFixed(2)}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

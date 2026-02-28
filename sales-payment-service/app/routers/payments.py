@@ -12,7 +12,7 @@ from app.services.payment_service import (
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
 
-@router.post("", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/pay", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
 def create_payment_api(payload: PaymentCreate, db: Session = Depends(get_db)):
     try:
         return create_payment(

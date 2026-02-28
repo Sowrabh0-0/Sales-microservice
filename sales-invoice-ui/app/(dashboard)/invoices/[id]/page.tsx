@@ -29,11 +29,13 @@ type OrderItem = {
 
 type Order = {
     id: number
-    customer: {
-        id: number
-        name: string
-    }
+    customer_id: number
     items: OrderItem[]
+}
+
+type Customer = {
+    id: number
+    name: string
 }
 
 type Invoice = {
@@ -63,6 +65,7 @@ type Payment = {
 export default function InvoiceViewPage() {
     const { id } = useParams<{ id: string }>()
     const router = useRouter()
+    const [customer, setCustomer] = useState<Customer | null>(null)
 
     const [invoice, setInvoice] = useState<Invoice | null>(null)
     const [order, setOrder] = useState<Order | null>(null)
@@ -82,6 +85,9 @@ export default function InvoiceViewPage() {
 
                 const ord = await apiFetch<Order>(`/orders/${inv.order_id}`)
                 setOrder(ord)
+
+                const cust = await apiFetch<Customer>(`/customers/${ord.customer_id}`)
+                setCustomer(cust)
 
                 const pay = await apiFetch<Payment[]>(
                     `/payments/invoice/${inv.id}`
@@ -174,8 +180,7 @@ export default function InvoiceViewPage() {
                     </h1>
                     <p className="text-muted-foreground">
                         Order #{invoice.order_id}
-                        {order && ` • ${order.customer.name}`}
-                    </p>
+                        {customer?.name ? ` • ${customer.name}` : ""}                    </p>
                 </div>
 
                 <Badge className={getInvoiceStatusClass(invoice.status)}>

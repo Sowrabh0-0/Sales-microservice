@@ -91,7 +91,7 @@ export default function AddPaymentPage() {
         try {
             setSaving(true)
 
-            await apiFetch("/payments", {
+            await apiFetch("/payments/pay", {
                 method: "POST",
                 body: JSON.stringify({
                     invoice_id: invoice.id,

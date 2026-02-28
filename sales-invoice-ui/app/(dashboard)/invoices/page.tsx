@@ -46,10 +46,7 @@ import { Input } from "@/components/ui/input"
 
 /* ================= TYPES ================= */
 
-type Customer = {
-    id: number
-    name: string
-}
+
 
 type Invoice = {
     id: number
@@ -66,7 +63,6 @@ type Invoice = {
 
 export default function InvoicesPage() {
     const [invoices, setInvoices] = useState<Invoice[]>([])
-    const [customers, setCustomers] = useState<Customer[]>([])
     const [loading, setLoading] = useState(true)
 
     /* pagination */
@@ -80,13 +76,7 @@ export default function InvoicesPage() {
     const [refunding, setRefunding] = useState(false)
 
 
-
-    /* filters */
-    const [filterOpen, setFilterOpen] = useState(false)
-    const [statusFilter, setStatusFilter] = useState<string | null>(null)
-    const [customerFilter, setCustomerFilter] = useState<string | null>(null)
     const router = useRouter()
-
 
     /* ================= LOAD DATA ================= */
 
@@ -99,16 +89,12 @@ export default function InvoicesPage() {
                 limit: String(limit),
             })
 
-            if (statusFilter) params.append("status", statusFilter)
-            if (customerFilter) params.append("customer_id", customerFilter)
-
-            const [invoiceData, customerData] = await Promise.all([
-                apiFetch<Invoice[]>(`/invoices?${params.toString()}`),
-                apiFetch<Customer[]>("/customers"),
-            ])
+            const invoiceData = await apiFetch<Invoice[]>(
+                `/invoices?${params.toString()}`
+            )
 
             setInvoices(invoiceData)
-            setCustomers(customerData)
+
         } catch (err: any) {
             toast.error(err.message)
         } finally {
@@ -118,7 +104,7 @@ export default function InvoicesPage() {
 
     useEffect(() => {
         loadInvoices()
-    }, [page, statusFilter, customerFilter])
+    }, [page])
 
     /* ================= CANCEL ================= */
 
@@ -138,6 +124,8 @@ export default function InvoicesPage() {
         }
     }
 
+    /* ================= REFUND ================= */
+
     async function handleRefund() {
         if (!refundTarget) return
 
@@ -147,15 +135,15 @@ export default function InvoicesPage() {
             await apiFetch(`/refunds/invoice/${refundTarget.id}`, {
                 method: "POST",
                 body: JSON.stringify({
-                    amount: refundTarget.total, // 🔒 locked amount
+                    amount: refundTarget.total,
                     reason: refundReason || null,
                 }),
             })
 
             toast.success("Invoice refunded successfully")
 
-            setInvoices((prev) =>
-                prev.map((i) =>
+            setInvoices(prev =>
+                prev.map(i =>
                     i.id === refundTarget.id
                         ? { ...i, status: "REFUNDED" }
                         : i
@@ -165,13 +153,13 @@ export default function InvoicesPage() {
             setRefundOpen(false)
             setRefundTarget(null)
             setRefundReason("")
+
         } catch (err: any) {
             toast.error(err.message)
         } finally {
             setRefunding(false)
         }
     }
-
     /* ================= RENDER ================= */
 
     return (
@@ -182,11 +170,6 @@ export default function InvoicesPage() {
                     <h1 className="text-2xl font-semibold">Invoices</h1>
                     <p className="text-muted-foreground">Manage invoices</p>
                 </div>
-
-                <Button variant="outline" onClick={() => setFilterOpen(true)}>
-                    <Filter className="mr-2 h-4 w-4" />
-                    Filters
-                </Button>
             </div>
 
             {/* TABLE */}
@@ -312,60 +295,6 @@ export default function InvoicesPage() {
                     </PaginationItem>
                 </PaginationContent>
             </Pagination>
-
-            {/* FILTER DIALOG */}
-            <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Filters</DialogTitle>
-                    </DialogHeader>
-
-                    <Select
-                        value={statusFilter ?? "ALL"}
-                        onValueChange={v => setStatusFilter(v === "ALL" ? null : v)}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">All</SelectItem>
-                            <SelectItem value="UNPAID">UNPAID</SelectItem>
-                            <SelectItem value="PAID">PAID</SelectItem>
-                            <SelectItem value="CANCELLED">CANCELLED</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <Select
-                        value={customerFilter ?? "ALL"}
-                        onValueChange={v => setCustomerFilter(v === "ALL" ? null : v)}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Customer" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">All</SelectItem>
-                            {customers.map(c => (
-                                <SelectItem key={c.id} value={String(c.id)}>
-                                    {c.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            setStatusFilter(null)
-                            setCustomerFilter(null)
-                            setPage(1)
-                            setFilterOpen(false)
-                        }}
-                    >
-                        Clear Filters
-                    </Button>
-                </DialogContent>
-            </Dialog>
-
 
             <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
                 <DialogContent>

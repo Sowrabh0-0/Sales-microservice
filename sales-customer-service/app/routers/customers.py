@@ -13,7 +13,7 @@ from app.services.customer_service import (
 
 router = APIRouter(prefix="/customers", tags=["Customers"])
 
-@router.post("/create-customer", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/ ", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
 def create_customer_api(data: CustomerCreate, db: Session = Depends(get_db)):
     try:
         return create_customer_service(db=db, name=data.name, email=data.email)

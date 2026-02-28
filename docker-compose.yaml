@@ -1,15 +1,10 @@
-version: "3.9"
-
 services:
-
   customer-service:
     build: ./sales-customer-service
     container_name: customer-service
     restart: always
-    env_file:
-      - ./sales-customer-service/.env
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      - DATABASE_URL=${DATABASE_URL}
     ports:
       - "8001:8000"
     networks:
@@ -19,11 +14,9 @@ services:
     build: ./sales-order-service
     container_name: order-service
     restart: always
-    env_file:
-      - ./sales-order-service/.env
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      CUSTOMER_SERVICE_URL: http://customer-service:8000
+      - DATABASE_URL=${DATABASE_URL}
+      - CUSTOMER_SERVICE_URL=http://customer-service:8000
     depends_on:
       - customer-service
     ports:
@@ -35,11 +28,9 @@ services:
     build: ./sales-invoice-service
     container_name: invoice-service
     restart: always
-    env_file:
-      - ./sales-invoice-service/.env
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      ORDER_SERVICE_URL: http://order-service:8000
+      - DATABASE_URL=${DATABASE_URL}
+      - ORDER_SERVICE_URL=http://order-service:8000
     depends_on:
       - order-service
     ports:
@@ -51,11 +42,9 @@ services:
     build: ./sales-payment-service
     container_name: payment-service
     restart: always
-    env_file:
-      - ./sales-payment-service/.env
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      INVOICE_SERVICE_URL: http://invoice-service:8000
+      - DATABASE_URL=${DATABASE_URL}
+      - INVOICE_SERVICE_URL=http://invoice-service:8000
     depends_on:
       - invoice-service
     ports:

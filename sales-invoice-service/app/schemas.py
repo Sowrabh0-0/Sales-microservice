@@ -1,4 +1,4 @@
-from dataclasses import Field
+from enum import Enum
 from pydantic import BaseModel, ConfigDict
 from datetime import date, datetime
 from typing import Optional
@@ -18,8 +18,14 @@ class InvoiceResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class InvoiceStatus(str, Enum):
+    UNPAID = "UNPAID"
+    PARTIALLY_PAID = "PARTIALLY_PAID"
+    PAID = "PAID"
+    OVERDUE = "OVERDUE"
+    CANCELLED = "CANCELLED"
+    REFUNDED = "REFUNDED"
+
+
 class InvoiceStatusUpdate(BaseModel):
-    status: str = Field(
-        ...,
-        pattern="^(UNPAID|PARTIALLY_PAID|PAID|OVERDUE|CANCELLED|REFUNDED)$"
-    )
+    status: InvoiceStatus

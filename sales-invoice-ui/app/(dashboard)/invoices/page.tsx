@@ -197,11 +197,13 @@ export default function InvoicesPage() {
                                     <TableCell>
                                         <span
                                             className={`rounded-full px-2 py-1 text-xs font-medium
-                        ${inv.status === "UNPAID"
+        ${inv.status === "UNPAID" || inv.status === "PARTIALLY_PAID"
                                                     ? "bg-yellow-100 text-yellow-800"
                                                     : inv.status === "PAID"
                                                         ? "bg-green-100 text-green-800"
-                                                        : "bg-red-100 text-red-800"
+                                                        : inv.status === "CANCELLED" || inv.status === "REFUNDED"
+                                                            ? "bg-red-100 text-red-800"
+                                                            : "bg-gray-100 text-gray-800"
                                                 }`}
                                         >
                                             {inv.status}

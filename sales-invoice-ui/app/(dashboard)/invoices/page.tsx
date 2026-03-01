@@ -132,7 +132,7 @@ export default function InvoicesPage() {
         try {
             setRefunding(true)
 
-            await apiFetch(`/refunds/invoice/${refundTarget.id}`, {
+            await apiFetch(`/payments/refund/${refundTarget.id}`, {
                 method: "POST",
                 body: JSON.stringify({
                     amount: refundTarget.total,

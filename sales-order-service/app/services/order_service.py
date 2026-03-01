@@ -105,6 +105,33 @@ def list_orders(db: Session, offset=0, limit=15, status=None, customer_id=None):
 
     return orders
 
+# -----------------------------
+# UPDATE ORDER
+# -----------------------------
+def update_order(db: Session, order_id: int, items: list):
+
+    order = get_order(db, order_id)
+
+    if order.status != "CREATED":
+        raise ValueError("Only CREATED orders can be updated")
+
+    # Delete existing items
+    db.query(OrderItem).filter(OrderItem.order_id == order.id).delete()
+
+    # Add new items
+    for item in items:
+        db.add(
+            OrderItem(
+                order_id=order.id,
+                product_name=item["product_name"],
+                quantity=item["quantity"],
+                unit_price=item["unit_price"],
+            )
+        )
+
+    db.commit()
+
+    return get_order(db, order.id)
 
 # -----------------------------
 # CONFIRM ORDER

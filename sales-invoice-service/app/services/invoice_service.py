@@ -106,9 +106,11 @@ def list_invoices(db: Session, status=None, order_id=None):
 def cancel_invoice(db: Session, invoice_id: int):
     invoice = get_invoice(db, invoice_id)
 
-    if invoice.status == "PAID":
-        raise ValueError("Paid invoice cannot be cancelled")
+    ALLOWED_CANCEL_STATUSES = ["UNPAID"]
 
+    if invoice.status not in ALLOWED_CANCEL_STATUSES:
+        raise ValueError("Only unpaid invoices can be cancelled")
+        
     invoice.status = "CANCELLED"
     db.commit()
     db.refresh(invoice)

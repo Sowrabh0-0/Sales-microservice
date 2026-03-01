@@ -23,14 +23,6 @@ import {
 } from "@/components/ui/dialog"
 
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-
-import {
     Pagination,
     PaginationContent,
     PaginationItem,
@@ -41,7 +33,6 @@ import {
 
 import { apiFetch } from "@/lib/api"
 import { useRouter } from "next/navigation"
-import { Input } from "@/components/ui/input"
 
 
 /* ================= TYPES ================= */
@@ -74,6 +65,8 @@ export default function InvoicesPage() {
     const [refundTarget, setRefundTarget] = useState<Invoice | null>(null)
     const [refundReason, setRefundReason] = useState("")
     const [refunding, setRefunding] = useState(false)
+
+    const cancellableStatuses = ["UNPAID"]
 
 
     const router = useRouter()
@@ -246,7 +239,7 @@ export default function InvoicesPage() {
                                             </Button>
                                         )}
                                         {/* CANCEL INVOICE */}
-                                        {inv.status === "UNPAID" && (
+                                        {cancellableStatuses.includes(inv.status) && (
                                             <Button
                                                 size="sm"
                                                 variant="destructive"

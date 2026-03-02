@@ -30,10 +30,7 @@ mkdir -p "$SERVICE_NAME/app/models"
 mkdir -p "$SERVICE_NAME/app/routers"
 mkdir -p "$SERVICE_NAME/app/services"
 
-touch "$SERVICE_NAME/app/__init__.py"
 touch "$SERVICE_NAME/app/models/__init__.py"
-touch "$SERVICE_NAME/app/routers/__init__.py"
-touch "$SERVICE_NAME/app/services/__init__.py"
 
 # ---------- requirements ----------
 
@@ -52,7 +49,7 @@ cat <<EOF > "$SERVICE_NAME/.env"
 DB_USER=admin
 DB_PASS=password
 DB_HOST=localhost
-DB_PORT=3307
+DB_PORT=3306
 DB_NAME=sales_db
 EOF
 

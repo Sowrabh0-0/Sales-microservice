@@ -324,7 +324,7 @@ export default function InvoiceViewPage() {
                     Back to Invoices
                 </Button>
 
-                {invoice.status !== "PAID" && invoice.status !== "CANCELLED" && (
+                {invoice.status !== "PAID" && invoice.status !== "CANCELLED" && invoice.status !== "PARTIAL_PAID" && invoice.status !== "REFUNDED" && (
                     <Button
                         variant="destructive"
                         onClick={cancelInvoice}

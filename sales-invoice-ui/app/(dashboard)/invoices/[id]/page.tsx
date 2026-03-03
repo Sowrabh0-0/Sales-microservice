@@ -74,6 +74,7 @@ export default function InvoiceViewPage() {
     const [loading, setLoading] = useState(true)
     const [loadingPayments, setLoadingPayments] = useState(true)
     const [canceling, setCanceling] = useState(false)
+    const [addingPayment, setAddingPayment] = useState(false)
 
     /* ================= LOAD DATA ================= */
 
@@ -324,13 +325,24 @@ export default function InvoiceViewPage() {
                     Back to Invoices
                 </Button>
 
-                {invoice.status !== "PAID" && invoice.status !== "CANCELLED" && invoice.status !== "PARTIAL_PAID" && invoice.status !== "REFUNDED" && (
+                {invoice.status == "UNPAID" && (
                     <Button
                         variant="destructive"
                         onClick={cancelInvoice}
                         disabled={canceling}
                     >
                         {canceling ? "Cancelling..." : "Cancel Invoice"}
+                    </Button>
+                )}
+
+                {invoice.status == "PARTIALLY_PAID" && (
+                    <Button
+                        variant="secondary"
+                        className="bg-green-100 text-green-800"
+                        onClick={() => router.push(`/invoices/${invoice.id}/pay`)}
+                        disabled={addingPayment}
+                    >
+                        {addingPayment ? "Adding Payment..." : "Add Payment"}
                     </Button>
                 )}
             </div>

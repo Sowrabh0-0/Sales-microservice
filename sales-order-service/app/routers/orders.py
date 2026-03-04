@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status, Request
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas import OrderCreate, OrderResponse, OrderUpdate
+
 from app.services.order_service import (
     create_order,
     confirm_order,
@@ -12,27 +13,44 @@ from app.services.order_service import (
     update_order,
 )
 
+from app.dependencies.permissions import require_permission
+from app.dependencies.auth import get_current_user
+
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
 
 @router.post("/", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
-def create_order_api(data: OrderCreate, db: Session = Depends(get_db)):
-    try:
-        return create_order(
-            db=db,
-            customer_id=data.customer_id,
-            items=[item.model_dump() for item in data.items],
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+def create_order_api(
+    data: OrderCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_permission("order.create")),
+):
+
+    auth_header = request.headers.get("Authorization")
+
+    return create_order(
+        db=db,
+        customer_id=data.customer_id,
+        items=[item.model_dump() for item in data.items],
+        organization_id=current_user.org_id,
+        created_by_user_id=current_user.user_id,
+        auth_header=auth_header
+    )
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
-def get_order_api(order_id: int, db: Session = Depends(get_db)):
-    try:
-        return get_order(db, order_id)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+def get_order_api(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_permission("order.read")),
+):
+
+    return get_order(
+        db,
+        order_id,
+        current_user.org_id
+    )
 
 
 @router.get("/", response_model=list[OrderResponse])
@@ -42,27 +60,60 @@ def list_orders_api(
     status: str | None = None,
     customer_id: int | None = None,
     db: Session = Depends(get_db),
+    current_user = Depends(require_permission("order.read")),
 ):
+
     offset = (page - 1) * limit
-    return list_orders(db, offset, limit, status, customer_id)
+
+    return list_orders(
+        db,
+        organization_id=current_user.org_id,
+        offset=offset,
+        limit=limit,
+        status=status,
+        customer_id=customer_id
+    )
 
 
 @router.put("/{order_id}", response_model=OrderResponse)
-def update_order_api(order_id: int, data: OrderUpdate, db: Session = Depends(get_db)):
-    try:
-        return update_order(db, order_id, [item.model_dump() for item in data.items])
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+def update_order_api(
+    order_id: int,
+    data: OrderUpdate,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_permission("order.update")),
+):
+
+    return update_order(
+        db,
+        order_id,
+        current_user.org_id,
+        [item.model_dump() for item in data.items]
+    )
 
 
 @router.post("/{order_id}/confirm", response_model=OrderResponse)
-def confirm_order_api(order_id: int, db: Session = Depends(get_db)):
-    return confirm_order(db, order_id)
+def confirm_order_api(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_permission("order.confirm")),
+):
+
+    return confirm_order(
+        db,
+        order_id,
+        current_user.org_id
+    )
 
 
 @router.post("/{order_id}/cancel", response_model=OrderResponse)
-def cancel_order_api(order_id: int, db: Session = Depends(get_db)):
-    try:
-        return cancel_order(db, order_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+def cancel_order_api(
+    order_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_permission("order.cancel")),
+):
+
+    return cancel_order(
+        db,
+        order_id,
+        current_user.org_id
+    )

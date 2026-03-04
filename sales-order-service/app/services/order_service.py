@@ -1,33 +1,49 @@
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
-import requests
 import os
 
 from app.models.order import Order
 from app.models.order_item import OrderItem
 
+from app.exceptions.custom_exceptions import NotFoundException, ConflictException
+from app.utils.service_client import authenticated_get
+
 CUSTOMER_SERVICE_URL = os.getenv("CUSTOMER_SERVICE_URL")
 
 
-def validate_customer(customer_id: int):
-    response = requests.get(
-        f"{CUSTOMER_SERVICE_URL}/customers/{customer_id}"
+# -----------------------------
+# VALIDATE CUSTOMER
+# -----------------------------
+def validate_customer(customer_id: int, auth_header: str):
+
+    response = authenticated_get(
+        f"{CUSTOMER_SERVICE_URL}/customers/{customer_id}",
+        auth_header
     )
+
     if response.status_code != 200:
-        raise ValueError("Customer not found")
+        raise NotFoundException("Customer not found")
 
 
 # -----------------------------
 # CREATE ORDER
 # -----------------------------
-def create_order(db: Session, customer_id: int, items: list) -> Order:
+def create_order(
+    db: Session,
+    customer_id: int,
+    items: list,
+    organization_id: int,
+    created_by_user_id: int,
+    auth_header: str
+) -> Order:
 
-    validate_customer(customer_id)
+    validate_customer(customer_id, auth_header)
 
     order = Order(
+        organization_id=organization_id,
         customer_id=customer_id,
         status="CREATED",
+        created_by_user_id=created_by_user_id,
         created_at=datetime.now(timezone.utc),
     )
 
@@ -47,27 +63,32 @@ def create_order(db: Session, customer_id: int, items: list) -> Order:
 
     db.commit()
 
-    return get_order(db, order.id)
+    return get_order(db, order.id, organization_id)
 
 
 # -----------------------------
 # GET ORDER
 # -----------------------------
-def get_order(db: Session, order_id: int) -> Order:
-    order = db.query(Order).filter(Order.id == order_id).first()
+def get_order(db: Session, order_id: int, organization_id: int) -> Order:
+
+    order = (
+        db.query(Order)
+        .filter(
+            Order.id == order_id,
+            Order.organization_id == organization_id
+        )
+        .first()
+    )
 
     if not order:
-        raise ValueError("Order not found")
+        raise NotFoundException("Order not found")
 
     items = db.query(OrderItem).filter(
         OrderItem.order_id == order.id
     ).all()
 
     order.items = items
-    order.total = sum(
-        item.quantity * item.unit_price
-        for item in items
-    )
+    order.total = sum(item.quantity * item.unit_price for item in items)
 
     return order
 
@@ -75,9 +96,9 @@ def get_order(db: Session, order_id: int) -> Order:
 # -----------------------------
 # LIST ORDERS
 # -----------------------------
-def list_orders(db: Session, offset=0, limit=15, status=None, customer_id=None):
+def list_orders(db: Session, organization_id, offset=0, limit=15, status=None, customer_id=None):
 
-    query = db.query(Order)
+    query = db.query(Order).filter(Order.organization_id == organization_id)
 
     if status:
         query = query.filter(Order.status == status)
@@ -93,32 +114,29 @@ def list_orders(db: Session, offset=0, limit=15, status=None, customer_id=None):
     )
 
     for order in orders:
+
         items = db.query(OrderItem).filter(
             OrderItem.order_id == order.id
         ).all()
 
         order.items = items
-        order.total = sum(
-            item.quantity * item.unit_price
-            for item in items
-        )
+        order.total = sum(item.quantity * item.unit_price for item in items)
 
     return orders
+
 
 # -----------------------------
 # UPDATE ORDER
 # -----------------------------
-def update_order(db: Session, order_id: int, items: list):
+def update_order(db: Session, order_id: int, organization_id: int, items: list):
 
-    order = get_order(db, order_id)
+    order = get_order(db, order_id, organization_id)
 
     if order.status != "CREATED":
-        raise ValueError("Only CREATED orders can be updated")
+        raise ConflictException("Only CREATED orders can be updated")
 
-    # Delete existing items
     db.query(OrderItem).filter(OrderItem.order_id == order.id).delete()
 
-    # Add new items
     for item in items:
         db.add(
             OrderItem(
@@ -131,17 +149,18 @@ def update_order(db: Session, order_id: int, items: list):
 
     db.commit()
 
-    return get_order(db, order.id)
+    return get_order(db, order.id, organization_id)
+
 
 # -----------------------------
 # CONFIRM ORDER
 # -----------------------------
-def confirm_order(db: Session, order_id: int):
+def confirm_order(db: Session, order_id: int, organization_id: int):
 
-    order = get_order(db, order_id)
+    order = get_order(db, order_id, organization_id)
 
     if order.status != "CREATED":
-        raise ValueError("Only CREATED orders can be confirmed")
+        raise ConflictException("Only CREATED orders can be confirmed")
 
     order.status = "CONFIRMED"
     db.commit()
@@ -153,12 +172,12 @@ def confirm_order(db: Session, order_id: int):
 # -----------------------------
 # CANCEL ORDER
 # -----------------------------
-def cancel_order(db: Session, order_id: int):
+def cancel_order(db: Session, order_id: int, organization_id: int):
 
-    order = get_order(db, order_id)
+    order = get_order(db, order_id, organization_id)
 
     if order.status == "CONFIRMED":
-        raise ValueError("Confirmed orders cannot be cancelled")
+        raise ConflictException("Confirmed orders cannot be cancelled")
 
     order.status = "CANCELLED"
     db.commit()

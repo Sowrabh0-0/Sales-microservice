@@ -18,6 +18,10 @@ from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
+@router.get("/health")
+def health():
+    return {"status": "ok"}
+
 
 @router.post("/", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
 def create_order_api(

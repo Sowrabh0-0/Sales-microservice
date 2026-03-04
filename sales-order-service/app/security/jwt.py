@@ -1,6 +1,5 @@
 import os
 from jose import jwt, JWTError
-from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,11 +17,11 @@ class TokenPayload:
 
 def decode_token(token: str) -> TokenPayload:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-
-        exp = payload.get("exp")
-        if exp and datetime.utcfromtimestamp(exp) < datetime.utcnow():
-            raise Exception("Token expired")
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
 
         return TokenPayload(
             user_id=payload.get("user_id"),
@@ -31,4 +30,4 @@ def decode_token(token: str) -> TokenPayload:
         )
 
     except JWTError:
-        raise Exception("Invalid token")
+        raise Exception("Invalid or expired token")

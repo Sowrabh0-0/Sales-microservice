@@ -1,4 +1,19 @@
 services:
+  mysql:
+    image: mysql:8.4
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
   nginx:
     image: nginx:alpine
     container_name: nginx
@@ -9,6 +24,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - frontend
+      - auth-service
       - customer-service
       - order-service
       - invoice-service
@@ -24,6 +40,18 @@ services:
       - ./sales-invoice-ui/.env.production
     networks:
       - backend
+    
+  auth-service:
+    build: ./sales-auth-service
+    container_name: auth-service
+    restart: always
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - ENVIRONMENT=${ENVIRONMENT}
+    networks:
+      - backend
 
   customer-service:
     build: ./sales-customer-service
@@ -31,6 +59,7 @@ services:
     restart: always
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - ENVIRONMENT=${ENVIRONMENT}
     networks:
       - backend
 
@@ -41,6 +70,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - CUSTOMER_SERVICE_URL=http://customer-service:8000
+      - ENVIRONMENT=${ENVIRONMENT}
     depends_on:
       - customer-service
     networks:
@@ -53,6 +83,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - ORDER_SERVICE_URL=http://order-service:8000
+      - ENVIRONMENT=${ENVIRONMENT}
     depends_on:
       - order-service
     networks:
@@ -65,6 +96,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - INVOICE_SERVICE_URL=http://invoice-service:8000
+      - ENVIRONMENT=${ENVIRONMENT}
     depends_on:
       - invoice-service
     networks:
@@ -73,3 +105,6 @@ services:
 networks:
   backend:
     driver: bridge
+
+volumes:
+  mysql_data:

@@ -15,10 +15,10 @@ from app.exceptions.custom_exceptions import AppException
 
 app = FastAPI()
 
-app.include_router(auth_router)
-
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
+
+app.include_router(auth_router)

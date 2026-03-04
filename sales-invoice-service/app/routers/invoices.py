@@ -17,6 +17,10 @@ from app.dependencies.permissions import require_permission
 
 router = APIRouter(prefix="/invoices", tags=["Invoices"])
 
+@router.get("/health")
+def health():
+    return {"status": "ok"}
+
 
 @router.post(
     "/orders/{order_id}",

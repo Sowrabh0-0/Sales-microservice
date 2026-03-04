@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -12,12 +13,21 @@ from app.exceptions.handlers import (
     generic_exception_handler
 )
 
+if os.getenv("ENVIRONMENT") == "production":
+    docs_url = None
+    redoc_url = None
+    openapi_url = None
+else:
+    docs_url = "/invoices/docs"
+    redoc_url = "/invoices/redoc"
+    openapi_url = "/invoices/openapi.json"
 
-app = FastAPI(title="Invoice Service")
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+app = FastAPI(
+    title="Invoice Service",
+    docs_url=docs_url,
+    redoc_url=redoc_url,
+    openapi_url=openapi_url,
+)
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)

@@ -16,6 +16,9 @@ from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/customers", tags=["Customers"])
 
+@router.get("/health")
+def health():
+    return {"status": "ok"}
 
 @router.post(
     "/create-customer",

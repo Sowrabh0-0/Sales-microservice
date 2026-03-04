@@ -12,6 +12,9 @@ from app.services.auth_service import signup, login
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+@router.get("/health")
+def health():
+    return {"status": "ok"}
 
 @router.post("/signup", response_model=TokenResponse)
 def signup_user(payload: SignupRequest, db: Session = Depends(get_db)):

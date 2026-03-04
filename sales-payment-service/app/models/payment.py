@@ -7,11 +7,13 @@ class Payment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
+    organization_id = Column(Integer, nullable=False, index=True)
     # Plain reference (no FK)
     invoice_id = Column(Integer, nullable=False)
 
     amount = Column(Numeric(10, 2), nullable=False)
     payment_method = Column(String(20), nullable=False)
+    created_by_user_id = Column(Integer, nullable=True)
     paid_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
     note = Column(Text, nullable=True)
 

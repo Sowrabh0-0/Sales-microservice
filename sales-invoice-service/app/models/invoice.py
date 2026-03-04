@@ -7,6 +7,8 @@ class Invoice(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
+    organization_id = Column(Integer, nullable=False, index=True)
+
     # Plain reference, no FK
     order_id = Column(Integer, nullable=False, unique=True)
 
@@ -20,6 +22,7 @@ class Invoice(Base):
     due_date = Column(Date, nullable=False)
 
     status = Column(String(20), nullable=False, default="UNPAID")
+    created_by_user_id = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc))
 
     __table_args__ = (

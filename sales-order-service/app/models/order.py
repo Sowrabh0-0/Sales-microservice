@@ -7,6 +7,8 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
+    organization_id = Column(Integer, nullable=False, index=True)
+
     customer_id = Column(Integer, nullable=False)
 
     status = Column(
@@ -14,6 +16,8 @@ class Order(Base):
         nullable=False,
         default="CREATED"
     )
+
+    created_by_user_id = Column(Integer, nullable=False)
 
     created_at = Column(
         DateTime(timezone=True),

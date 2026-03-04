@@ -60,6 +60,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - ENVIRONMENT=${ENVIRONMENT}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     networks:
       - backend
 
@@ -71,6 +72,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - CUSTOMER_SERVICE_URL=http://customer-service:8000
       - ENVIRONMENT=${ENVIRONMENT}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       - customer-service
     networks:
@@ -84,6 +86,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - ORDER_SERVICE_URL=http://order-service:8000
       - ENVIRONMENT=${ENVIRONMENT}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       - order-service
     networks:
@@ -97,6 +100,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - INVOICE_SERVICE_URL=http://invoice-service:8000
       - ENVIRONMENT=${ENVIRONMENT}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       - invoice-service
     networks:

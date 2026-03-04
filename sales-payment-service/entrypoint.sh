@@ -1,10 +1,17 @@
 #!/bin/sh
 
-echo "Waiting for DB..."
-sleep 5
+echo "Waiting for MySQL..."
+
+until nc -z mysql-db 3306
+do
+  echo "MySQL not ready yet..."
+  sleep 2
+done
+
+echo "MySQL is ready!"
 
 echo "Creating tables..."
 python -m app.init_db
 
 echo "Starting FastAPI..."
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+uvicorn app.main:app --host 0.0.0.0 --port 8000

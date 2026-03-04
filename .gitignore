@@ -27,3 +27,5 @@ Thumbs.db
 # build
 dist/
 build/
+
+permission-format.txt

@@ -32,11 +32,15 @@ def seed_roles_and_permissions():
 
             "order.create",
             "order.read",
+            "order.update",
+            "order.confirm",
             "order.cancel",
+
 
             "invoice.create",
             "invoice.read",
             "invoice.update",
+            "invoice.cancel",
 
             "payment.create",
             "payment.read",

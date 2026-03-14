@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-deployment
+  namespace: sowrabh-test-ns
+  labels:
+    app: payment
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: payment-microservice
+  template:
+    metadata:
+      labels:
+        app: payment-microservice
+    spec:
+      containers:
+        - name: payment-container
+          image: sowrabh0/sales-payment-service:v1.0.0
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - secretRef:
+                name: backend-secret
+            - configMapRef:
+                name: backend-config

@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sales-ui-deployment
+  namespace: sowrabh-test-ns
+  labels:
+    app: sales-ui 
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: sales-ui
+  template:
+    metadata:
+      labels:
+        app: sales-ui
+    spec:
+      containers:
+        - name: sales-ui-container
+          image: sowrabh0/sales-invoice-ui:v1.0.0
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: backend-secret
+            - configMapRef:
+                name: backend-config

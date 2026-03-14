@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sales-ui-service
+  namespace: sowrabh-test-ns
+  labels:
+    app: sales-ui 
+spec:
+  type: ClusterIP
+  selector:
+    app: sales-ui-microservice
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+      

@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: order-deployment
+  namespace: sowrabh-test-ns
   labels:
     app: order
 spec:
@@ -12,7 +13,6 @@ spec:
       maxUnavailable: 1
       maxSurge: 1
   selector:
-    labels:
       matchLabels:
         app: order-microservice
   template:
